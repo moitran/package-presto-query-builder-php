@@ -8,10 +8,8 @@ use MoiTran\PrestoQueryBuilder\Exception\InvalidArgumentException;
  * Class Example
  * @package MoiTran\PrestoQueryBuilder
  */
-class Query
+class Query extends Base
 {
-    use Where;
-
     /**
      * @var bool
      */
@@ -24,26 +22,51 @@ class Query
     const SORT_DESC = 'DESC';
     const SORT_ASC = 'ASC';
 
+    const LEFT_JOIN = 'LEFT';
+    const RIGHT_JOIN = 'RIGHT';
+    const INNER_JOIN = 'INNER';
+    const FULL_JOIN = 'FULL';
+
     /**
      * @var string
      */
     protected $queryStr = '';
 
     /**
-     * @param mixed $select
+     * @param $select
      *
      * @return $this
+     * @throws InvalidArgumentException
      */
     public function select($select)
     {
-        $selection = is_string($select) ? [$select] : $select;
-        $this->combineQueryStr("SELECT " . implode(',', $selection));
+        if (!(is_string($select) || is_array($select))) {
+            throw new InvalidArgumentException('$select argument must be a string or an array');
+        }
+
+        $selection = $select;
+        if (is_array($select)) {
+            $selection = implode(', ', array_map(
+                function ($value, $key) {
+                    if (is_numeric($key)) {
+                        return $value;
+                    }
+
+                    return sprintf("%s as %s", $key, $value);
+                },
+                $select,
+                array_keys($select)
+            ));
+        }
+
+        $this->combineQueryStr("SELECT " . $selection);
 
         return $this;
     }
 
     /**
      * @param $from
+     * @param string $alias
      *
      * @return $this
      * @throws InvalidArgumentException
@@ -51,9 +74,9 @@ class Query
     public function from($from, $alias = '')
     {
         if (!is_string($from) || !is_string($alias)) {
-            throw new InvalidArgumentException('$from and $as argument must be a string');
+            throw new InvalidArgumentException('$from and $alias argument must be a string');
         }
-        $from = " FROM " . $from;
+        $from = sprintf(" FROM (%s)", $from);
         if ($alias != '') {
             $alias = ' AS ' . $alias;
         }
@@ -61,6 +84,74 @@ class Query
         $from .= $alias;
 
         $this->combineQueryStr($from);
+
+        return $this;
+    }
+
+    /**
+     * @param $table
+     * @param string $alias
+     *
+     * @return Query
+     * @throws InvalidArgumentException
+     */
+    public function leftJoin($table, $alias = '')
+    {
+        return $this->join($table, $alias, self::LEFT_JOIN);
+    }
+
+    /**
+     * @param $table
+     * @param string $alias
+     *
+     * @return Query
+     * @throws InvalidArgumentException
+     */
+    public function rightJoin($table, $alias = '')
+    {
+        return $this->join($table, $alias, self::RIGHT_JOIN);
+    }
+
+    /**
+     * @param $table
+     * @param string $alias
+     *
+     * @return Query
+     * @throws InvalidArgumentException
+     */
+    public function innerJoin($table, $alias = '')
+    {
+        return $this->join($table, $alias, self::INNER_JOIN);
+    }
+
+    /**
+     * @param $table
+     * @param string $alias
+     *
+     * @return Query
+     * @throws InvalidArgumentException
+     */
+    public function fullJoin($table,$alias = '')
+    {
+        return $this->join($table, self::FULL_JOIN, $alias);
+    }
+
+    /**
+     * @param $leftCol
+     * @param $condition
+     * @param $rightCol
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function on($leftCol, $condition, $rightCol)
+    {
+        if (!is_string($leftCol) || !is_string($condition) || !is_string($rightCol)) {
+            throw new InvalidArgumentException('$leftCol, $condition and $rightCol argument must be a string');
+        }
+
+        $joinStr = sprintf(' ON %s %s %s', $leftCol, $condition, $rightCol);
+        $this->combineQueryStr($joinStr);
 
         return $this;
     }
@@ -75,16 +166,7 @@ class Query
      */
     public function whereAnd($column, $condition, $value)
     {
-        // call whereAnd function from trait
-        $andStr = $this->getWhereAndStr($column, $condition, $value, $this->isFirstWhere);
-
-        if ($this->isFirstWhere) {
-            $this->isFirstWhere = false;
-        }
-
-        $this->combineQueryStr($andStr);
-
-        return $this;
+        return $this->where($column, $condition, $this->removeSpecialChars($value), 'AND');
     }
 
     /**
@@ -97,43 +179,7 @@ class Query
      */
     public function whereOr($column, $condition, $value)
     {
-        // call whereAnd function from trait
-        $orStr = $this->getWhereOrStr($column, $condition, $value);
-
-        if ($this->isFirstWhere) {
-            $this->isFirstWhere = false;
-        }
-
-        $this->combineQueryStr($orStr);
-
-        return $this;
-    }
-
-    /**
-     * @param $column
-     * @param $values
-     *
-     * @return $this
-     * @throws InvalidArgumentException
-     */
-    public function whereIn($column, $values)
-    {
-        if (!is_string($column)) {
-            throw new InvalidArgumentException('$column argument must be a string');
-        }
-
-        if (!is_array($values)) {
-            throw new InvalidArgumentException('$values argument must be an array');
-        }
-
-        $whereInStr = sprintf(' AND %s IN ("%s")', $column, implode('","', $values));
-        if ($this->isFirstWhere) {
-            $whereInStr = sprintf(' WHERE %s IN ("%s")', $column, implode('","', $values));
-        }
-
-        $this->combineQueryStr($whereInStr);
-
-        return $this;
+        return $this->where($column, $condition, $this->removeSpecialChars($value), 'OR');
     }
 
     /**
@@ -184,11 +230,12 @@ class Query
      */
     public function groupBy($columns)
     {
-        if (!is_array($columns)) {
-            throw new InvalidArgumentException('$columns argument must be an array');
+        if (!(is_array($columns) || is_string($columns))) {
+            throw new InvalidArgumentException('$columns argument must be an array or as string');
         }
 
-        $groupByStr = ' GROUP BY ' . implode(', ', $columns);
+        $groupValue = is_string($columns) ? $columns : implode(', ', $columns);
+        $groupByStr = ' GROUP BY ' . $groupValue;
 
         $this->combineQueryStr($groupByStr);
 
@@ -232,6 +279,69 @@ class Query
         }
 
         $this->combineQueryStr(" LIMIT $limit");
+
+        return $this;
+    }
+
+    /**
+     * @param $column
+     * @param $condition
+     * @param $value
+     * @param $whereType
+     *
+     * @return $this|string
+     * @throws InvalidArgumentException
+     */
+    private function where($column, $condition, $value, $whereType)
+    {
+        if ($whereType == 'AND') {
+            // call whereAnd function from trait
+            $whereStr = $this->getWhereAndStr(
+                $column,
+                $condition,
+                $value,
+                $this->isFirstWhere
+            );
+        } else {
+            // call whereOr function from trait
+            $whereStr = $this->getWhereOrStr(
+                $column,
+                $condition,
+                $value,
+                $this->isFirstWhere
+            );
+        }
+
+
+        if ($this->isFirstWhere) {
+            $this->isFirstWhere = false;
+        }
+
+        $this->combineQueryStr($whereStr);
+
+        return $this;
+    }
+
+    /**
+     * @param $table
+     * @param $alias
+     * @param $joinType
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    private function join($table, $alias, $joinType)
+    {
+        if (!is_string($table) || !is_string($alias)) {
+            throw new InvalidArgumentException('$table and $alias argument must be a string');
+        }
+
+        if ($alias != '') {
+            $alias = ' AS ' . $alias;
+        }
+        $joinStr = sprintf(' %s JOIN (%s) %s', $joinType, $table, $alias);
+
+        $this->combineQueryStr($joinStr);
 
         return $this;
     }

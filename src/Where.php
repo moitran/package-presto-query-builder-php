@@ -52,15 +52,19 @@ trait Where
     private function where($column, $condition, $value, $whereType)
     {
         if (!is_string($column) || !is_string($condition)) {
-            throw new InvalidArgumentException('$from, $condition and $value argument must be a string');
+            throw new InvalidArgumentException('$from and $condition argument must be a string');
         }
 
-        if (!(is_string($value) || is_array($value))) {
+        if (!(is_string($value) || is_array($value) || is_null($value))) {
             throw new InvalidArgumentException('$value argument must be a string or an array');
         }
 
-        $valueStr = is_string($value) ? $value : sprintf('("%s")', implode('","', $value));
-        $whereStr = sprintf(' %s %s %s "%s"', $whereType, $column, $condition, $valueStr);
+        if (is_null($value)) {
+            $valueStr = 'NULL';
+        } else {
+            $valueStr = is_string($value) ? sprintf("'%s'", $value) : sprintf("('%s')", implode("','", $value));
+        }
+        $whereStr = sprintf(" %s %s %s %s", $whereType, $column, $condition, $valueStr);
 
         return $whereStr;
     }
