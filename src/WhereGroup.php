@@ -57,7 +57,7 @@ class WhereGroup extends Base
         $orStr = $this->getWhereOrStr($column, $condition, $this->removeSpecialChars($value));
 
         if ($this->isFirstCondition) {
-            $orStr = substr($orStr, 5);
+            $orStr = substr($orStr, 4);
             $this->isFirstCondition = false;
         }
 

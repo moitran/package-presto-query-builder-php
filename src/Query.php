@@ -137,7 +137,7 @@ class Query extends Base
      */
     public function fullJoin($table, $alias = '')
     {
-        return $this->join($table, self::FULL_JOIN, $alias);
+        return $this->join($table, $alias, self::FULL_JOIN);
     }
 
     /**
@@ -197,6 +197,7 @@ class Query extends Base
 
         if ($this->isFirstWhere) {
             $whereStr = sprintf(' WHERE AND (%s)', $whereStr);
+            $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' AND (%s)', $whereStr);
         }
@@ -217,6 +218,7 @@ class Query extends Base
 
         if ($this->isFirstWhere) {
             $whereStr = sprintf(' WHERE OR (%s)', $whereStr);
+            $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' OR (%s)', $whereStr);
         }
@@ -256,7 +258,7 @@ class Query extends Base
     public function groupBy($columns)
     {
         if (!(is_array($columns) || is_string($columns))) {
-            throw new InvalidArgumentException('$columns argument must be an array or as string');
+            throw new InvalidArgumentException('$columns argument must be an array or a string');
         }
 
         $groupValue = is_string($columns) ? $columns : implode(', ', $columns);
@@ -364,7 +366,7 @@ class Query extends Base
         if ($alias != '') {
             $alias = ' AS ' . $alias;
         }
-        $joinStr = sprintf(' %s JOIN (%s) %s', $joinType, $table, $alias);
+        $joinStr = sprintf(' %s JOIN (%s)%s', $joinType, $table, $alias);
 
         $this->combineQueryStr($joinStr);
 
