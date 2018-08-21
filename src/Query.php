@@ -18,6 +18,10 @@ class Query extends Base
      * @var bool
      */
     private $isFirstOrderBy = true;
+    /**
+     * @var bool
+     */
+    private $isFirstUnionAll = true;
 
     const SORT_DESC = 'DESC';
     const SORT_ASC = 'ASC';
@@ -131,7 +135,7 @@ class Query extends Base
      * @return Query
      * @throws InvalidArgumentException
      */
-    public function fullJoin($table,$alias = '')
+    public function fullJoin($table, $alias = '')
     {
         return $this->join($table, self::FULL_JOIN, $alias);
     }
@@ -218,6 +222,27 @@ class Query extends Base
         }
 
         $this->combineQueryStr($whereStr);
+
+        return $this;
+    }
+
+    /**
+     * @param Query $query
+     *
+     * @return $this
+     */
+    public function unionAll(Query $query)
+    {
+        $combineQueryStr = $query->getQueryStr();
+
+        if (!$this->isFirstUnionAll) {
+            $this->queryStr = sprintf('%s UNION ALL (%s)', $this->queryStr, $combineQueryStr);
+
+            return $this;
+        }
+
+        $this->queryStr = sprintf('(%s) UNION ALL (%s)', $this->queryStr, $combineQueryStr);
+        $this->isFirstUnionAll = false;
 
         return $this;
     }
