@@ -18,6 +18,10 @@ class Query extends Base
      * @var bool
      */
     private $isFirstOrderBy = true;
+    /**
+     * @var bool
+     */
+    private $isFirstUnionAll = true;
 
     const SORT_DESC = 'DESC';
     const SORT_ASC = 'ASC';
@@ -131,9 +135,9 @@ class Query extends Base
      * @return Query
      * @throws InvalidArgumentException
      */
-    public function fullJoin($table,$alias = '')
+    public function fullJoin($table, $alias = '')
     {
-        return $this->join($table, self::FULL_JOIN, $alias);
+        return $this->join($table, $alias, self::FULL_JOIN);
     }
 
     /**
@@ -193,6 +197,7 @@ class Query extends Base
 
         if ($this->isFirstWhere) {
             $whereStr = sprintf(' WHERE AND (%s)', $whereStr);
+            $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' AND (%s)', $whereStr);
         }
@@ -213,11 +218,33 @@ class Query extends Base
 
         if ($this->isFirstWhere) {
             $whereStr = sprintf(' WHERE OR (%s)', $whereStr);
+            $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' OR (%s)', $whereStr);
         }
 
         $this->combineQueryStr($whereStr);
+
+        return $this;
+    }
+
+    /**
+     * @param Query $query
+     *
+     * @return $this
+     */
+    public function unionAll(Query $query)
+    {
+        $combineQueryStr = $query->getQueryStr();
+
+        if (!$this->isFirstUnionAll) {
+            $this->queryStr = sprintf('%s UNION ALL (%s)', $this->queryStr, $combineQueryStr);
+
+            return $this;
+        }
+
+        $this->queryStr = sprintf('(%s) UNION ALL (%s)', $this->queryStr, $combineQueryStr);
+        $this->isFirstUnionAll = false;
 
         return $this;
     }
@@ -231,7 +258,7 @@ class Query extends Base
     public function groupBy($columns)
     {
         if (!(is_array($columns) || is_string($columns))) {
-            throw new InvalidArgumentException('$columns argument must be an array or as string');
+            throw new InvalidArgumentException('$columns argument must be an array or a string');
         }
 
         $groupValue = is_string($columns) ? $columns : implode(', ', $columns);
@@ -339,7 +366,7 @@ class Query extends Base
         if ($alias != '') {
             $alias = ' AS ' . $alias;
         }
-        $joinStr = sprintf(' %s JOIN (%s) %s', $joinType, $table, $alias);
+        $joinStr = sprintf(' %s JOIN (%s)%s', $joinType, $table, $alias);
 
         $this->combineQueryStr($joinStr);
 

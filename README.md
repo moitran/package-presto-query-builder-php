@@ -124,7 +124,7 @@ Testing
 -------
 
 ``` bash
-$ vendor/bin/phpunit tests/
+$ vendor/bin/phpunit --coverage-html=cov/ tests/
 ```
 
 

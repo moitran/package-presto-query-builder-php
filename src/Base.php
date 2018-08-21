@@ -57,7 +57,11 @@ abstract class Base
 
         $str = stripcslashes($str);
 
-        $str = mb_ereg_replace('[\x00\x0A\x0D\x1A\x22\x25\x27\x5C\x5F]', '\\\0', $str);
+        $str = str_replace(
+            ['\\', "\0", "\n", "\r", "'", '"', "\x1a"],
+            ['\\\\', '\\0', '\\n', '\\r', "\\'", '\\"', '\\Z'],
+            $str
+        );
 
         if ($prefix === '%') {
             $str = '%' . $str;
