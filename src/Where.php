@@ -22,6 +22,7 @@ trait Where
     public function getWhereAndStr($column, $condition, $value, $isFirstWhere = false)
     {
         $whereType = $isFirstWhere ? 'WHERE' : 'AND';
+
         return $this->where($column, $condition, $value, $whereType);
     }
 
@@ -37,6 +38,7 @@ trait Where
     public function getWhereOrStr($column, $condition, $value, $isFirstWhere = false)
     {
         $whereType = $isFirstWhere ? 'WHERE' : 'OR';
+
         return $this->where($column, $condition, $value, $whereType);
     }
 
