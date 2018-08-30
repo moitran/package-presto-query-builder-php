@@ -67,6 +67,38 @@ class WhereGroup extends Base
     }
 
     /**
+     * @param WhereGroup $whereGroup
+     *
+     * @return $this
+     */
+    public function whereAndGroup(WhereGroup $whereGroup)
+    {
+        $whereStr = $whereGroup->getWhereConditions();
+
+        $whereStr = sprintf(' AND (%s)', $whereStr);
+
+        $this->combineWhereStr($whereStr);
+
+        return $this;
+    }
+
+    /**
+     * @param WhereGroup $whereGroup
+     *
+     * @return $this
+     */
+    public function whereOrGroup(WhereGroup $whereGroup)
+    {
+        $whereStr = $whereGroup->getWhereConditions();
+
+        $whereStr = sprintf(' OR (%s)', $whereStr);
+
+        $this->combineWhereStr($whereStr);
+
+        return $this;
+    }
+
+    /**
      * @param string $str
      */
     private function combineWhereStr($str)
