@@ -39,4 +39,32 @@ class WhereGroupTest extends TestCases
         $expected = "col1 > 10 OR col2 IS NULL OR col3 IN ('1','2','3','4')";
         $this->assertEquals($expected, $actual);
     }
+
+    /**
+     * @throws \MoiTran\PrestoQueryBuilder\Exception\InvalidArgumentException
+     */
+    public function testWhereOrGroup()
+    {
+        $whereGroup = new WhereGroup();
+        $actual = $whereGroup->whereOrGroup((new WhereGroup())->whereAnd('col1', '!=', 'not1')
+            ->whereAnd('col1', '!=', 'not2'))
+            ->getWhereConditions();
+
+        $expected = " OR (col1 != 'not1' AND col1 != 'not2')";
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @throws \MoiTran\PrestoQueryBuilder\Exception\InvalidArgumentException
+     */
+    public function testWhereAndGroup()
+    {
+        $whereGroup = new WhereGroup();
+        $actual = $whereGroup->whereAndGroup((new WhereGroup())->whereAnd('col1', '!=', 'not1')
+            ->whereAnd('col1', '!=', 'not2'))
+            ->getWhereConditions();
+
+        $expected = " AND (col1 != 'not1' AND col1 != 'not2')";
+        $this->assertEquals($expected, $actual);
+    }
 }
