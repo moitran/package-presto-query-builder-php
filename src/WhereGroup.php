@@ -77,6 +77,11 @@ class WhereGroup extends Base
 
         $whereStr = sprintf(' AND (%s)', $whereStr);
 
+        if ($this->isFirstCondition) {
+            $whereStr = substr($whereStr, 5);
+            $this->isFirstCondition = false;
+        }
+
         $this->combineWhereStr($whereStr);
 
         return $this;
@@ -92,6 +97,11 @@ class WhereGroup extends Base
         $whereStr = $whereGroup->getWhereConditions();
 
         $whereStr = sprintf(' OR (%s)', $whereStr);
+
+        if ($this->isFirstCondition) {
+            $whereStr = substr($whereStr, 4);
+            $this->isFirstCondition = false;
+        }
 
         $this->combineWhereStr($whereStr);
 
