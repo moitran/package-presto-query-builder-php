@@ -50,7 +50,7 @@ class WhereGroupTest extends TestCases
             ->whereAnd('col1', '!=', 'not2'))
             ->getWhereConditions();
 
-        $expected = " OR (col1 != 'not1' AND col1 != 'not2')";
+        $expected = "(col1 != 'not1' AND col1 != 'not2')";
         $this->assertEquals($expected, $actual);
     }
 
@@ -64,7 +64,7 @@ class WhereGroupTest extends TestCases
             ->whereAnd('col1', '!=', 'not2'))
             ->getWhereConditions();
 
-        $expected = " AND (col1 != 'not1' AND col1 != 'not2')";
+        $expected = "(col1 != 'not1' AND col1 != 'not2')";
         $this->assertEquals($expected, $actual);
     }
 }
