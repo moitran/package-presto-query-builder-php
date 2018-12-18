@@ -75,6 +75,10 @@ class WhereGroup extends Base
     {
         $whereStr = $whereGroup->getWhereConditions();
 
+        if ($whereStr == '') {
+            return $this;
+        }
+
         $whereStr = sprintf(' AND (%s)', $whereStr);
 
         if ($this->isFirstCondition) {
@@ -95,6 +99,10 @@ class WhereGroup extends Base
     public function whereOrGroup(WhereGroup $whereGroup)
     {
         $whereStr = $whereGroup->getWhereConditions();
+
+        if ($whereStr == '') {
+            return $this;
+        }
 
         $whereStr = sprintf(' OR (%s)', $whereStr);
 
