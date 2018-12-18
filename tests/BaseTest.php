@@ -3,6 +3,7 @@
 namespace MoiTran\PrestoQueryBuilder\Tests;
 
 use MoiTran\PrestoQueryBuilder\Base;
+use MoiTran\PrestoQueryBuilder\Tests\Provider\BaseTestProvider;
 
 /**
  * Class BaseTest
@@ -10,34 +11,7 @@ use MoiTran\PrestoQueryBuilder\Base;
  */
 class BaseTest extends TestCases
 {
-    /**
-     * @return array
-     */
-    public function providerRemoveSpecialChars()
-    {
-        return [
-            'numeric' => [
-                'input' => 111,
-                'expected' => 111,
-            ],
-            'special-char' => [
-                'input' => '"test"',
-                'expected' => '\"test\"',
-            ],
-            'percent-char' => [
-                'input' => '%test%',
-                'expected' => '%test%',
-            ],
-            'array-value' => [
-                'input' => [1, '"test"', "\n", "\r", "%test"],
-                'expected' => ['1', '\"test\"', '\\n', '\\r', '%test'],
-            ],
-            'not-accept-value-type' => [
-                'input' => new \stdClass(),
-                'expected' => new \stdClass(),
-            ],
-        ];
-    }
+    use BaseTestProvider;
 
     /**
      * @param $input

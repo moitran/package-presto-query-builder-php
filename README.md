@@ -1,6 +1,15 @@
 Presto Query Builder
 ===================
 
+This package provides a set of classes and methods that is able to programmatically build presto queries.
+
+[![Latest Stable Version](https://poser.pugx.org/moitran/package-presto-query-builder-php/v/stable)](https://packagist.org/packages/moitran/package-presto-query-builder-php)
+[![Latest Unstable Version](https://poser.pugx.org/moitran/package-presto-query-builder-php/v/unstable)](https://packagist.org/packages/moitran/package-presto-query-builder-php)
+[![Build Status](https://travis-ci.org/moitran/package-presto-query-builder-php.svg?branch=master)](https://travis-ci.org/moitran/package-presto-query-builder-php)
+[![codecov](https://codecov.io/gh/moitran/package-presto-query-builder-php/branch/master/graphs/badge.svg)](https://codecov.io/gh/moitran/package-presto-query-builder-php)
+[![License](https://poser.pugx.org/moitran/package-presto-query-builder-php/license)](https://packagist.org/packages/moitran/package-presto-query-builder-php)
+[![composer.lock](https://poser.pugx.org/moitran/package-presto-query-builder-php/composerlock)](https://packagist.org/packages/moitran/package-presto-query-builder-php)
+
 - [Installation](#installation)
 - [Usage](#usage)
 - [Testing](#testing)
@@ -137,4 +146,4 @@ Contributing
 License
 -------
 
-[MIT](https://github.com/moitran/package-presto-query-builder-php/blob/master/LICENSE)
+This package is under [MIT License](https://github.com/moitran/package-presto-query-builder-php/blob/master/LICENSE)

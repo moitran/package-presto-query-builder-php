@@ -22,6 +22,10 @@ class Query extends Base
      * @var bool
      */
     private $isFirstUnionAll = true;
+    /**
+     * @var bool
+     */
+    private $isFirstHaving = true;
 
     const SORT_DESC = 'DESC';
     const SORT_ASC = 'ASC';
@@ -195,8 +199,12 @@ class Query extends Base
     {
         $whereStr = $whereGroup->getWhereConditions();
 
+        if ($whereStr == '') {
+            return $this;
+        }
+
         if ($this->isFirstWhere) {
-            $whereStr = sprintf(' WHERE AND (%s)', $whereStr);
+            $whereStr = sprintf(' WHERE (%s)', $whereStr);
             $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' AND (%s)', $whereStr);
@@ -216,8 +224,12 @@ class Query extends Base
     {
         $whereStr = $whereGroup->getWhereConditions();
 
+        if ($whereStr == '') {
+            return $this;
+        }
+
         if ($this->isFirstWhere) {
-            $whereStr = sprintf(' WHERE OR (%s)', $whereStr);
+            $whereStr = sprintf(' WHERE (%s)', $whereStr);
             $this->isFirstWhere = false;
         } else {
             $whereStr = sprintf(' OR (%s)', $whereStr);
@@ -226,6 +238,32 @@ class Query extends Base
         $this->combineQueryStr($whereStr);
 
         return $this;
+    }
+
+    /**
+     * @param $column
+     * @param $condition
+     * @param $value
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function andHaving($column, $condition, $value)
+    {
+        return $this->having($column, $condition, $this->removeSpecialChars($value), 'AND');
+    }
+
+    /**
+     * @param $column
+     * @param $condition
+     * @param $value
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    public function orHaving($column, $condition, $value)
+    {
+        return $this->having($column, $condition, $this->removeSpecialChars($value), 'OR');
     }
 
     /**
@@ -345,6 +383,44 @@ class Query extends Base
         }
 
         $this->combineQueryStr($whereStr);
+
+        return $this;
+    }
+
+    /**
+     * @param $column
+     * @param $condition
+     * @param $value
+     * @param $havingType
+     *
+     * @return $this
+     * @throws InvalidArgumentException
+     */
+    private function having($column, $condition, $value, $havingType)
+    {
+        if (!is_string($column) || !is_string($condition)) {
+            throw new InvalidArgumentException('$column and $condition argument must be a string');
+        }
+
+        if (!(is_string($value) || is_array($value) || is_null($value) || is_numeric($value))) {
+            throw new InvalidArgumentException('$value argument must be a string, a numeric or an array');
+        }
+
+        if (is_null($value)) {
+            $valueStr = 'NULL';
+        } elseif (is_numeric($value)) {
+            $valueStr = $value;
+        } else {
+            $valueStr = is_string($value) ? sprintf("'%s'", $value) : sprintf("('%s')", implode("', '", $value));
+        }
+
+        if ($this->isFirstHaving) {
+            $havingType = 'HAVING';
+            $this->isFirstHaving = false;
+        }
+
+        $havingStr = sprintf(" %s %s %s %s", $havingType, $column, $condition, $valueStr);
+        $this->combineQueryStr($havingStr);
 
         return $this;
     }

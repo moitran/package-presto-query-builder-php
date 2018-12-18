@@ -66,7 +66,7 @@ trait Where
         } elseif (is_numeric($value)) {
             $valueStr = $value;
         } else {
-            $valueStr = is_string($value) ? sprintf("'%s'", $value) : sprintf("('%s')", implode("','", $value));
+            $valueStr = is_string($value) ? sprintf("'%s'", $value) : sprintf("('%s')", implode("', '", $value));
         }
         $whereStr = sprintf(" %s %s %s %s", $whereType, $column, $condition, $valueStr);
 
