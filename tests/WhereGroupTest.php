@@ -21,7 +21,7 @@ class WhereGroupTest extends TestCases
             ->whereAnd('col3', 'IN', [1, 2, 3, 4])
             ->getWhereConditions();
 
-        $expected = "col1 > 10 AND col2 IS NULL AND col3 IN ('1','2','3','4')";
+        $expected = "col1 > 10 AND col2 IS NULL AND col3 IN ('1', '2', '3', '4')";
         $this->assertEquals($expected, $actual);
     }
 
@@ -36,7 +36,7 @@ class WhereGroupTest extends TestCases
             ->whereOr('col3', 'IN', [1, 2, 3, 4])
             ->getWhereConditions();
 
-        $expected = "col1 > 10 OR col2 IS NULL OR col3 IN ('1','2','3','4')";
+        $expected = "col1 > 10 OR col2 IS NULL OR col3 IN ('1', '2', '3', '4')";
         $this->assertEquals($expected, $actual);
     }
 
@@ -52,6 +52,15 @@ class WhereGroupTest extends TestCases
 
         $expected = "(col1 != 'not1' AND col1 != 'not2')";
         $this->assertEquals($expected, $actual);
+
+        $whereGroup = new WhereGroup();
+        $actual = $whereGroup->whereOrGroup((new WhereGroup()))
+            ->whereAnd('col1', '!=', 'not2')
+            ->whereAnd('col2', '!=', 'not2')
+            ->getWhereConditions();
+
+        $expected = "col1 != 'not2' AND col2 != 'not2'";
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -65,6 +74,15 @@ class WhereGroupTest extends TestCases
             ->getWhereConditions();
 
         $expected = "(col1 != 'not1' AND col1 != 'not2')";
+        $this->assertEquals($expected, $actual);
+
+        $whereGroup = new WhereGroup();
+        $actual = $whereGroup->whereAndGroup((new WhereGroup()))
+            ->whereAnd('col1', '!=', 'not2')
+            ->whereAnd('col2', '!=', 'not2')
+            ->getWhereConditions();
+
+        $expected = "col1 != 'not2' AND col2 != 'not2'";
         $this->assertEquals($expected, $actual);
     }
 }
